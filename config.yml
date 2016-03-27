@@ -1,0 +1,10 @@
+tech:
+  pyloncompass:
+    type: PYLONFINDER
+    show_non_running: true
+    show_upgrading: true
+    update_cooldown: 5s
+    tag:
+      type: LORE
+      lore: Pylonfinder
+      material: COMPASS
