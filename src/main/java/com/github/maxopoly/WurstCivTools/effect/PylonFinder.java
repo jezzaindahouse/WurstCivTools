@@ -3,6 +3,7 @@ package com.github.maxopoly.WurstCivTools.effect;
 import java.util.HashSet;
 import java.util.List;
 
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
 
@@ -21,7 +22,8 @@ public class PylonFinder extends WurstEffect {
 	private boolean showUpgrading;
 	private CoolDownHandler cdHandler;
 
-	public PylonFinder(boolean showNonRunning, boolean showUpgrading, long updateCooldown) {
+	public PylonFinder(boolean showNonRunning, boolean showUpgrading,
+			long updateCooldown) {
 		super();
 		this.showNonRunning = showNonRunning;
 		this.showUpgrading = showUpgrading;
@@ -29,7 +31,10 @@ public class PylonFinder extends WurstEffect {
 	}
 
 	public void setCompassLocation(Player p) {
-		if (cdHandler.onCoolDown(p.getUniqueId())) {
+		long coolDown = cdHandler.getRemainingCooldown(p.getUniqueId());
+		if (coolDown != 0) {
+			p.sendMessage(ChatColor.RED + "You have to wait another "
+					+ coolDown / 1000 + "." + coolDown % 1000 + " seconds before using this again");
 			return;
 		}
 		cdHandler.putOnCoolDown(p.getUniqueId());
@@ -59,7 +64,7 @@ public class PylonFinder extends WurstEffect {
 				}
 			}
 		} else {
-			//show factories that are currently upgrading to be a pylon
+			// show factories that are currently upgrading to be a pylon
 			for (Factory f : FactoryMod.getManager().getAllFactories()) {
 				if (!f.isActive() && !pylons.contains(f)) {
 					continue;
@@ -93,8 +98,8 @@ public class PylonFinder extends WurstEffect {
 							.distance(p.getLocation());
 					continue;
 				}
-				double compDistance = fac.getMultiBlockStructure()
-						.getCenter().distance(p.getLocation());
+				double compDistance = fac.getMultiBlockStructure().getCenter()
+						.distance(p.getLocation());
 				if (compDistance < distance) {
 					distance = compDistance;
 					closest = fac;
@@ -103,7 +108,13 @@ public class PylonFinder extends WurstEffect {
 
 		}
 		if (closest != null) {
-			p.setCompassTarget(closest.getMultiBlockStructure().getCenter());
+			if (!p.getCompassTarget().equals(closest.getMultiBlockStructure().getCenter())) {
+				p.sendMessage(ChatColor.GREEN + "Found new target");
+				p.setCompassTarget(closest.getMultiBlockStructure().getCenter());
+			}
+		}
+		else {
+			p.sendMessage(ChatColor.RED + "No pylons found");
 		}
 
 	}
