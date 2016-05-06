@@ -67,7 +67,6 @@ public class ToolListener implements Listener {
 		for (Tag tag : getTags(is)) {
 			tag.getEffect().handleInteract(e.getPlayer(), e);
 		}
-
 	}
 
 	private List<Tag> getTags(ItemStack is) {

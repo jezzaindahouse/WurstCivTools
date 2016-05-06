@@ -1,13 +1,23 @@
 package com.github.maxopoly.WurstCivTools;
 
 import static vg.civcraft.mc.civmodcore.util.ConfigParsing.parseItemMap;
+import static vg.civcraft.mc.civmodcore.util.ConfigParsing.parseItemMapDirectly;
 import static vg.civcraft.mc.civmodcore.util.ConfigParsing.parseTime;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.enchantments.Enchantment;
 
+import vg.civcraft.mc.civmodcore.Config;
+import vg.civcraft.mc.civmodcore.itemHandling.ItemMap;
+
+import com.github.maxopoly.WurstCivTools.anvil.AnvilHandler;
 import com.github.maxopoly.WurstCivTools.effect.PylonFinder;
 import com.github.maxopoly.WurstCivTools.effect.WurstEffect;
 import com.github.maxopoly.WurstCivTools.tags.LoreTag;
@@ -16,6 +26,7 @@ import com.github.maxopoly.WurstCivTools.tags.Tag;
 public class ConfigParser {
 	private WurstCivTools plugin;
 	private WurstManager manager;
+	private AnvilHandler anvilHandler;
 
 	public ConfigParser() {
 		plugin = WurstCivTools.getPlugin();
@@ -27,6 +38,7 @@ public class ConfigParser {
 		FileConfiguration config = plugin.getConfig();
 		manager = new WurstManager();
 		parseTools(config.getConfigurationSection("tech"));
+		parseCustomAnvilFunctionality(config.getConfigurationSection("anvil"));
 		plugin.info("Parsed complete config");
 		return manager;
 	}
@@ -103,6 +115,58 @@ public class ConfigParser {
 			break;
 		}
 		return result;
+	}
+	
+	public void parseCustomAnvilFunctionality(ConfigurationSection config) {
+		if (config == null) {
+			return;
+		}
+		ConfigurationSection materialSection = config.getConfigurationSection("repairMaterials");
+		if (materialSection == null) {
+			plugin.warning("Could not find repair material section, skipping enabling custom anvil functionality");
+			return;
+		}
+		Map <ItemMap, Double> repairValues = new HashMap<ItemMap, Double>();
+		for(String key : materialSection.getKeys(false)) {
+			ConfigurationSection current = materialSection.getConfigurationSection(key);
+			ItemMap item = parseItemMapDirectly(current.getConfigurationSection("item"));
+			if (item.getTotalItemAmount() == 0) {
+				plugin.warning("No item specified for custom repair value specification at " + current.getCurrentPath());
+				continue;
+			}
+			double value = current.getDouble("value", 1.0);
+			repairValues.put(item, value);
+		}
+		
+		ConfigurationSection enchantSection = config.getConfigurationSection("enchantCosts");
+		if (enchantSection == null) {
+			plugin.warning("Could not find enchants section, skipping enabling custom anvil functionality");
+			return;
+		}
+		Map <Enchantment, Double> enchantCosts = new HashMap<Enchantment, Double>();
+		for(String key : enchantSection.getKeys(false)) {
+			ConfigurationSection current = enchantSection.getConfigurationSection(key);
+			String enchantName = current.getString("enchant");
+			if (enchantName == null) {
+				plugin.warning("No enchant specified for custom enchant weight at " + current.getCurrentPath() + ". Skipping it");
+				continue;
+			}
+			Enchantment enchant = Enchantment.getByName(enchantName);
+			if (enchant == null) {
+				plugin.warning("Invalid enchant name found at " + current.getCurrentPath() + ". Skipping it");
+				continue;
+			}
+			double value = current.getDouble("value", 1.0);
+			enchantCosts.put(enchant, value);
+		}
+		
+		double renameCost = config.getDouble("renamingCost", 1.0);
+		boolean scaleWithMissingDura = config.getBoolean("scaleWithMissingDura", true);
+		anvilHandler = new AnvilHandler(repairValues, enchantCosts, renameCost, scaleWithMissingDura);
+	}
+	
+	public AnvilHandler getAnvilHandler() {
+		return anvilHandler;
 	}
 
 }

@@ -8,3 +8,60 @@ tech:
       type: LORE
       lore: Pylonfinder
       material: COMPASS
+anvil:
+  repairMaterials:
+    emerald:
+      item:
+        material: EMERALD
+      value: 1.0
+    emeraldblock:
+      item:
+        material: EMERALD_BLOCK
+      value: 9.0
+  enchantCosts:
+    power:
+      enchant: ARROW_DAMAGE
+      value: 5
+    flame:
+      enchant: ARROW_FIRE
+      value: 59
+    infinity:
+      enchant: ARROW_INFINITE
+    punch:
+      enchant: ARROW_KNOCKBACK
+    sharpness:
+      enchant: DAMAGE_ALL
+    boa:
+      enchant: DAMAGE_ARTHROPODS
+    smite:
+      enchant: DAMAGE_UNDEAD
+    depthstrider:
+      enchant: DEPTH_STRIDER
+    efficiency:
+      enchant: DIG_SPEED
+    unbreaking:
+      enchant: DURABILITY
+    fireaspect:
+      enchant: FIRE_ASPECT
+    knockback:
+      enchant: KNOCKBACK
+    respiration:
+      enchant: OXYGEN
+    prot:
+      enchant: PROTECTION_ENVIRONMENTAL
+    exploProt:
+      enchant: PROTECTION_EXPLOSIONS
+    featherfall:
+      enchant: PROTECTION_FALL
+    fireprot:
+      enchant: PROTECTION_FIRE
+    projProt:
+      enchant: PROTECTION_PROJECTILE
+    silktouch:
+      enchant: SILK_TOUCH
+    thorns:
+      enchant: THORNS
+    aquaAffinity:
+      enchant: WATER_WORKER
+  renamingCost: 2.0
+  scaleWithMissingDura: true
