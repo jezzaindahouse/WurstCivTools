@@ -39,9 +39,7 @@ public class AnvilHandler {
 			return true;
 		} else {
 			double requiredAmount = getTotalAnvilActionCost(i);
-			System.out.println(requiredAmount);
 			double availableAmount = getValue(i.getItem(1), true);
-			System.out.println(availableAmount);
 			return requiredAmount <= availableAmount;
 		}
 	}
