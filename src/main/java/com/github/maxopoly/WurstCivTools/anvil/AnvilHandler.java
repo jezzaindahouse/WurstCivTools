@@ -20,33 +20,37 @@ public class AnvilHandler {
 
 	private Map<ItemMap, Double> values;
 	private Map<Enchantment, Double> enchantCosts;
-	private double renamingCost;
 	private static Set<Material> tools;
 	private boolean scaleWithMissingDurability;
+	private List <String> blacklistedLore;
 
-	public AnvilHandler(Map<ItemMap, Double> values, Map<Enchantment, Double> enchantCosts, double renamingCost, boolean scaleWithMissingDura) {
+	public AnvilHandler(Map<ItemMap, Double> values,
+			Map<Enchantment, Double> enchantCosts,
+			boolean scaleWithMissingDura, List <String> blacklistedLore) {
 		this.values = values;
 		this.enchantCosts = enchantCosts;
-		this.renamingCost = renamingCost;
 		this.scaleWithMissingDurability = scaleWithMissingDura;
-		initToolsSet();
+		this.blacklistedLore = blacklistedLore;
+		initRepairableSet();
 	}
 
 	public boolean canTakeItem(AnvilInventory i) {
-		if (isCombiningTools(i)) {
+		if (isCombiningRepairables(i)) {
 			return true;
 		} else {
 			double requiredAmount = getTotalAnvilActionCost(i);
+			System.out.println(requiredAmount);
 			double availableAmount = getValue(i.getItem(1), true);
+			System.out.println(availableAmount);
 			return requiredAmount <= availableAmount;
 		}
 	}
 
 	public double getTotalAnvilActionCost(AnvilInventory i) {
-		double requiredAmount = calculateRepairCost(i.getItem(0));
-		if (isBeingRenamed(i)) {
-			requiredAmount += renamingCost;
+		if (i.getItem(0) == null) {
+			return 0.0;
 		}
+		double requiredAmount = calculateRepairCost(i.getItem(0));
 		return requiredAmount;
 	}
 
@@ -56,8 +60,8 @@ public class AnvilHandler {
 		}
 		double duraMultiplier = 1.0;
 		if (scaleWithMissingDurability) {
-			duraMultiplier = is.getDurability()
-					/ is.getType().getMaxDurability();
+			duraMultiplier = ((double) is.getDurability())
+					/ ((double) is.getType().getMaxDurability());
 		}
 		ItemMeta im = is.getItemMeta();
 		double enchantMultiplier = 0.0;
@@ -69,6 +73,8 @@ public class AnvilHandler {
 					enchantMultiplier += multi * enchant.getValue();
 				}
 			}
+		} else {
+			enchantMultiplier = 1.0;
 		}
 		return enchantMultiplier * duraMultiplier;
 	}
@@ -97,26 +103,39 @@ public class AnvilHandler {
 	}
 
 	public boolean consumeRequiredMaterials(AnvilInventory i) {
+		if (isCombiningRepairables(i)) {
+			i.setItem(0, null);
+			i.setItem(1, null);
+			return true;
+		}
 		double requiredAmount = getTotalAnvilActionCost(i);
 		double availableAmount = getValue(i.getItem(1), true);
-		if (availableAmount != 0 && availableAmount >= requiredAmount) {
+		if (i.getItem(1) == null) {
+			i.setItem(0, null);
+			return true;
+		}
+		if (availableAmount >= requiredAmount) {
 			int amountToConsume = (int) Math.ceil(requiredAmount
 					/ getValue(i.getItem(1), false));
+			i.setItem(0, null);
 			i.getItem(1).setAmount(i.getItem(1).getAmount() - amountToConsume);
 			return true;
 		}
 		return false;
 	}
 
-	public static ItemStack getAdjustedOutput(AnvilInventory i) {
+	public ItemStack getAdjustedOutput(AnvilInventory i, ItemStack vanillaResult) {
 		ItemStack firstItem = i.getItem(0);
 		ItemStack secondItem = i.getItem(1);
 		String newName = null;
-		if (firstItem != null && firstItem.getItemMeta().hasDisplayName()) {
-			newName = firstItem.getItemMeta().getDisplayName();
+		if (vanillaResult != null && vanillaResult.getItemMeta() != null
+				&& vanillaResult.getItemMeta().hasDisplayName()) {
+			newName = vanillaResult.getItemMeta().getDisplayName();
 		}
-		if (isCombiningTools(i)) {
-			System.out.println("Combining tools");
+		if (isCombiningRepairables(i)) {
+			if (firstItem.getType() != secondItem.getType()) {
+				return null;
+			}
 			Map<Enchantment, Integer> enchants = new HashMap<Enchantment, Integer>();
 			List<String> lore = new LinkedList<String>();
 			List<ItemStack> items = new LinkedList<ItemStack>();
@@ -138,7 +157,7 @@ public class AnvilHandler {
 				}
 				if (im.hasLore()) {
 					for (String exisLore : im.getLore()) {
-						if (!lore.contains(exisLore)) {
+						if (!lore.contains(exisLore) && !blacklistedLore.contains(exisLore)) {
 							lore.add(exisLore);
 						}
 					}
@@ -158,18 +177,20 @@ public class AnvilHandler {
 			}
 			result.setItemMeta(im);
 			return result;
-		}
-		else { //put in a normal tool
-			if (firstItem == null) {
+		} else {
+			if (firstItem != null && secondItem == null) {
+				// assume renaming and do nothing
 				return null;
+			} else { // put in a normal tool
+				if (firstItem == null) {
+					return null;
+				}
+				ItemStack repl = firstItem.clone();
+				repl.setDurability((short) 0);
+				return repl;
 			}
-			ItemStack repl = firstItem.clone();
-			repl.setDurability((short) 0);
-			return repl;
 		}
 	}
-	
-	
 
 	private static boolean isBeingRenamed(AnvilInventory i) {
 		ItemStack originalItem = i.getItem(0);
@@ -189,13 +210,13 @@ public class AnvilHandler {
 				.equals(resultItem.getItemMeta().getDisplayName());
 	}
 
-	public static boolean isCombiningTools(AnvilInventory i) {
+	public static boolean isCombiningRepairables(AnvilInventory i) {
 		return i.getItem(0) != null && i.getItem(1) != null
 				&& isTool(i.getItem(0).getType())
 				&& isTool(i.getItem(1).getType());
 	}
 
-	private void initToolsSet() {
+	private void initRepairableSet() {
 		tools = new HashSet<Material>();
 		tools.add(Material.WOOD_AXE);
 		tools.add(Material.WOOD_HOE);
@@ -217,6 +238,27 @@ public class AnvilHandler {
 		tools.add(Material.DIAMOND_PICKAXE);
 		tools.add(Material.DIAMOND_SPADE);
 		tools.add(Material.DIAMOND_SWORD);
+		tools.add(Material.LEATHER_BOOTS);
+		tools.add(Material.LEATHER_CHESTPLATE);
+		tools.add(Material.LEATHER_HELMET);
+		tools.add(Material.LEATHER_LEGGINGS);
+		tools.add(Material.IRON_BOOTS);
+		tools.add(Material.IRON_CHESTPLATE);
+		tools.add(Material.IRON_HELMET);
+		tools.add(Material.IRON_LEGGINGS);
+		tools.add(Material.GOLD_BOOTS);
+		tools.add(Material.GOLD_CHESTPLATE);
+		tools.add(Material.GOLD_HELMET);
+		tools.add(Material.GOLD_LEGGINGS);
+		tools.add(Material.DIAMOND_BOOTS);
+		tools.add(Material.DIAMOND_CHESTPLATE);
+		tools.add(Material.DIAMOND_HELMET);
+		tools.add(Material.DIAMOND_LEGGINGS);
+		tools.add(Material.CHAINMAIL_BOOTS);
+		tools.add(Material.CHAINMAIL_CHESTPLATE);
+		tools.add(Material.CHAINMAIL_HELMET);
+		tools.add(Material.CHAINMAIL_LEGGINGS);
+		tools.add(Material.SHEARS);
+		tools.add(Material.SHIELD);
 	}
-
 }

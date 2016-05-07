@@ -5,6 +5,7 @@ import static vg.civcraft.mc.civmodcore.util.ConfigParsing.parseItemMapDirectly;
 import static vg.civcraft.mc.civmodcore.util.ConfigParsing.parseTime;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -159,10 +160,9 @@ public class ConfigParser {
 			double value = current.getDouble("value", 1.0);
 			enchantCosts.put(enchant, value);
 		}
-		
-		double renameCost = config.getDouble("renamingCost", 1.0);
+		List <String> blacklisted = config.getStringList("blacklistedLore");
 		boolean scaleWithMissingDura = config.getBoolean("scaleWithMissingDura", true);
-		anvilHandler = new AnvilHandler(repairValues, enchantCosts, renameCost, scaleWithMissingDura);
+		anvilHandler = new AnvilHandler(repairValues, enchantCosts, scaleWithMissingDura, blacklisted);
 	}
 	
 	public AnvilHandler getAnvilHandler() {
