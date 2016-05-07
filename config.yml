@@ -87,3 +87,5 @@ anvil:
           value: 3
   renamingCost: 2.0
   scaleWithMissingDura: true
+  blacklistedLore:
+   - Compacted Item

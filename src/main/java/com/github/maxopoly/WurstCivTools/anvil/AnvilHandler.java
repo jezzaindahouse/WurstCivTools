@@ -260,5 +260,6 @@ public class AnvilHandler {
 		tools.add(Material.CHAINMAIL_LEGGINGS);
 		tools.add(Material.SHEARS);
 		tools.add(Material.SHIELD);
+		tools.add(Material.BOW);
 	}
 }
