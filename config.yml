@@ -19,49 +19,71 @@ anvil:
         material: EMERALD_BLOCK
       value: 9.0
   enchantCosts:
-    power:
-      enchant: ARROW_DAMAGE
-      value: 5
-    flame:
-      enchant: ARROW_FIRE
-      value: 59
-    infinity:
-      enchant: ARROW_INFINITE
-    punch:
-      enchant: ARROW_KNOCKBACK
-    sharpness:
-      enchant: DAMAGE_ALL
-    boa:
-      enchant: DAMAGE_ARTHROPODS
-    smite:
-      enchant: DAMAGE_UNDEAD
-    depthstrider:
-      enchant: DEPTH_STRIDER
-    efficiency:
-      enchant: DIG_SPEED
-    unbreaking:
-      enchant: DURABILITY
-    fireaspect:
-      enchant: FIRE_ASPECT
-    knockback:
-      enchant: KNOCKBACK
-    respiration:
-      enchant: OXYGEN
-    prot:
-      enchant: PROTECTION_ENVIRONMENTAL
-    exploProt:
-      enchant: PROTECTION_EXPLOSIONS
-    featherfall:
-      enchant: PROTECTION_FALL
-    fireprot:
-      enchant: PROTECTION_FIRE
-    projProt:
-      enchant: PROTECTION_PROJECTILE
-    silktouch:
-      enchant: SILK_TOUCH
-    thorns:
-      enchant: THORNS
-    aquaAffinity:
-      enchant: WATER_WORKER
+        fireprot:
+          enchant: PROTECTION_FIRE
+          value: 3
+        flame:
+          enchant: ARROW_FIRE
+          value: 19
+        fireaspect:
+          enchant: FIRE_ASPECT
+          value: 11
+        depthstrider:
+          enchant: DEPTH_STRIDER
+          value: 5
+        respiration:
+          enchant: OXYGEN
+          value: 4
+        frostwalker:
+          enchant: FROST_WALKER
+          value: 12
+        aquaafinity:
+          enchant: WATER_WORKER
+          value: 6
+        featherfalling:
+          enchant: PROTECTION_FALL
+          value: 4
+        baneofarthropods:
+          enchant: DAMAGE_ARTHROPODS
+          value: 3
+        infinity:
+          enchant: ARROW_INFINITE
+          value: 19
+        silktouch:
+          enchant: SILK_TOUCH
+          value: 12
+        protection:
+          enchant: PROTECTION_ENVIRONMENTAL
+          value: 3
+        blastprotection:
+          enchant: PROTECTION_EXPLOSIONS
+          value: 1
+        thorns:
+          enchant: THORNS
+          value: 2
+        power:
+          enchant: ARROW_DAMAGE
+          value: 8
+        projectileprotection:
+          enchant: PROTECTION_PROJECTILE
+          value: 1
+        punch:
+          enchant: ARROW_KNOCKBACK
+          value: 7
+        sharpness:
+          enchant: DAMAGE_ALL
+          value: 8
+        smite:
+          enchant: DAMAGE_UNDEAD
+          value: 3
+        knockback:
+          enchant: KNOCKBACK
+          value: 7
+        efficiency:
+          enchant: DIG_SPEED
+          value: 1
+        unbreaking:
+          enchant: DURABILITY
+          value: 3
   renamingCost: 2.0
   scaleWithMissingDura: true
