@@ -22,11 +22,11 @@ public class AnvilHandler {
 	private Map<Enchantment, Double> enchantCosts;
 	private static Set<Material> tools;
 	private boolean scaleWithMissingDurability;
-	private List <String> blacklistedLore;
+	private List<String> blacklistedLore;
 
 	public AnvilHandler(Map<ItemMap, Double> values,
 			Map<Enchantment, Double> enchantCosts,
-			boolean scaleWithMissingDura, List <String> blacklistedLore) {
+			boolean scaleWithMissingDura, List<String> blacklistedLore) {
 		this.values = values;
 		this.enchantCosts = enchantCosts;
 		this.scaleWithMissingDurability = scaleWithMissingDura;
@@ -116,7 +116,12 @@ public class AnvilHandler {
 			int amountToConsume = (int) Math.ceil(requiredAmount
 					/ getValue(i.getItem(1), false));
 			i.setItem(0, null);
-			i.getItem(1).setAmount(i.getItem(1).getAmount() - amountToConsume);
+			if (i.getItem(1).getAmount() == amountToConsume) {
+				i.setItem(1, null);
+			} else {
+				i.getItem(1).setAmount(
+						i.getItem(1).getAmount() - amountToConsume);
+			}
 			return true;
 		}
 		return false;
@@ -155,7 +160,8 @@ public class AnvilHandler {
 				}
 				if (im.hasLore()) {
 					for (String exisLore : im.getLore()) {
-						if (!lore.contains(exisLore) && !blacklistedLore.contains(exisLore)) {
+						if (!lore.contains(exisLore)
+								&& !blacklistedLore.contains(exisLore)) {
 							lore.add(exisLore);
 						}
 					}
