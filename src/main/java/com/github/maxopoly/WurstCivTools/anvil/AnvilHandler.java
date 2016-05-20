@@ -265,5 +265,7 @@ public class AnvilHandler {
 		tools.add(Material.SHEARS);
 		tools.add(Material.SHIELD);
 		tools.add(Material.BOW);
+		tools.add(Material.FLINT_AND_STEEL);
+		tools.add(Material.FISHING_ROD);
 	}
 }
