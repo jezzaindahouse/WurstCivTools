@@ -6,7 +6,7 @@ tech:
     update_cooldown: 5s
     tag:
       type: LORE
-      lore: Pylonfinder
+      lore: Inactive and Upgrading Pylons
       material: COMPASS
 anvil:
   repairMaterials:
