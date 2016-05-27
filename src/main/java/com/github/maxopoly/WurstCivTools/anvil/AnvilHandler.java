@@ -12,6 +12,7 @@ import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import vg.civcraft.mc.civmodcore.itemHandling.ItemMap;
@@ -53,7 +54,7 @@ public class AnvilHandler {
 	}
 
 	public double calculateRepairCost(ItemStack is) {
-		if (!isTool(is.getType())) {
+		if (!isTool(is.getType()) || is.getType() == Material.ENCHANTED_BOOK) {
 			return 0;
 		}
 		double duraMultiplier = 1.0;
@@ -112,6 +113,11 @@ public class AnvilHandler {
 			i.setItem(0, null);
 			return true;
 		}
+		if (i.getItem(1).getType() == Material.ENCHANTED_BOOK) {
+			i.setItem(0, null);
+			i.setItem(1, null);
+			return true;
+		}
 		if (availableAmount >= requiredAmount) {
 			int amountToConsume = (int) Math.ceil(requiredAmount
 					/ getValue(i.getItem(1), false));
@@ -135,8 +141,11 @@ public class AnvilHandler {
 				&& vanillaResult.getItemMeta().hasDisplayName()) {
 			newName = vanillaResult.getItemMeta().getDisplayName();
 		}
-		if (isCombiningRepairables(i)) {
-			if (firstItem.getType() != secondItem.getType()) {
+		if (isCombiningRepairables(i) || (secondItem != null && secondItem.getType() == Material.ENCHANTED_BOOK)) {
+			if (firstItem == null) {
+				return null;
+			}
+			if (firstItem.getType() != secondItem.getType() && secondItem.getType() != Material.ENCHANTED_BOOK) {
 				return null;
 			}
 			Map<Enchantment, Integer> enchants = new HashMap<Enchantment, Integer>();
@@ -175,6 +184,11 @@ public class AnvilHandler {
 			}
 			for (Entry<Enchantment, Integer> entry : enchants.entrySet()) {
 				im.addEnchant(entry.getKey(), entry.getValue(), true);
+			}
+			if (secondItem.getType() == Material.ENCHANTED_BOOK) {
+				for(Entry <Enchantment, Integer> entry : ((EnchantmentStorageMeta)secondItem.getItemMeta()).getStoredEnchants().entrySet()) {
+					im.addEnchant(entry.getKey(), Math.max(entry.getValue(), im.getEnchantLevel(entry.getKey())), true);
+				}
 			}
 			if (newName != null) {
 				im.setDisplayName(newName);
