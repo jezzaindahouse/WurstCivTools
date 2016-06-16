@@ -1,24 +1,21 @@
 package com.github.maxopoly.WurstCivTools;
 
-import static vg.civcraft.mc.civmodcore.util.ConfigParsing.parseItemMap;
 import static vg.civcraft.mc.civmodcore.util.ConfigParsing.parseItemMapDirectly;
 import static vg.civcraft.mc.civmodcore.util.ConfigParsing.parseTime;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
 
-import vg.civcraft.mc.civmodcore.Config;
 import vg.civcraft.mc.civmodcore.itemHandling.ItemMap;
 
 import com.github.maxopoly.WurstCivTools.anvil.AnvilHandler;
+import com.github.maxopoly.WurstCivTools.effect.PlayerHook;
 import com.github.maxopoly.WurstCivTools.effect.PylonFinder;
 import com.github.maxopoly.WurstCivTools.effect.WurstEffect;
 import com.github.maxopoly.WurstCivTools.tags.LoreTag;
@@ -57,6 +54,10 @@ public class ConfigParser {
 			WurstEffect effect;
 			switch (type) {
 			case "PYLONFINDER":
+				if (current.getBoolean("enabled",false) == false){
+					plugin.info("Pylonfinder disabled, skipping...");
+					continue;
+				}
 				if (!Bukkit.getPluginManager().isPluginEnabled("FactoryMod")) {
 					plugin.severe("Attempted to load Pylonfinder tool, but FactoryMod is not installed on this server");
 					continue;
@@ -71,6 +72,22 @@ public class ConfigParser {
 						+ showNonRunning + ", showUpgrading:" + showUpgrading
 						+ ", cooldown:" + cd);
 				break;
+			case "PLAYERHOOK":
+				if (current.getBoolean("enabled",false) == false){
+					plugin.info("PlayerHook disabled, skipping...");
+					continue;
+				}
+				boolean prevent_swords = current.getBoolean("prevent_use_with_swords", false);
+				boolean prevent_axes = current.getBoolean("prevent_use_with_axes", false);
+				boolean prevent_bows = current.getBoolean("prevent_use_with_bows", false);
+				int stop_count = current.getInt("hooks_to_stop_movement", 2); if(stop_count<=0){stop_count=2;}
+				double speed_change = current.getDouble("hook_speed_change",-0.05D);
+				effect = new PlayerHook(prevent_swords,prevent_axes,prevent_bows,stop_count, speed_change);
+				plugin.info("Parsed PlayerHook tool, swords:" + prevent_swords +
+						", axes:" + prevent_axes + ", bows:" + prevent_bows + 
+						", stop_count:" + stop_count + ", speed_change:" +speed_change);
+				break;
+
 			default:
 				plugin.severe("Could not identify effect type " + type + " at "
 						+ config.getCurrentPath());

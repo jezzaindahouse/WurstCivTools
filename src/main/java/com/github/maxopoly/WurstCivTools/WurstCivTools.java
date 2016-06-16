@@ -1,10 +1,14 @@
 package com.github.maxopoly.WurstCivTools;
 
+import java.util.List;
+
 import org.bukkit.Bukkit;
+import org.bukkit.event.Listener;
 
 import com.github.maxopoly.WurstCivTools.anvil.AnvilHandler;
 import com.github.maxopoly.WurstCivTools.listener.AnvilListener;
 import com.github.maxopoly.WurstCivTools.listener.ToolListener;
+import com.github.maxopoly.WurstCivTools.tags.Tag;
 
 import vg.civcraft.mc.civmodcore.ACivMod;
 
@@ -46,6 +50,14 @@ public class WurstCivTools extends ACivMod {
 		Bukkit.getPluginManager().registerEvents(new ToolListener(), this);
 		if (anvilHandler != null) {
 			Bukkit.getPluginManager().registerEvents(new AnvilListener(anvilHandler), this);
+		}
+		for(List<Tag> tags : manager.getAllTags()){
+			for (Tag tag : tags){
+				Listener l = tag.getEffect().getListener();
+				if (l != null){
+					Bukkit.getPluginManager().registerEvents(l, this);
+				}
+			}
 		}
 	}
 }

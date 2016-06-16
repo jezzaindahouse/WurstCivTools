@@ -1,13 +1,14 @@
 package com.github.maxopoly.WurstCivTools;
 
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 
+import com.github.maxopoly.WurstCivTools.effect.WurstEffect;
 import com.github.maxopoly.WurstCivTools.tags.Tag;
 
 public class WurstManager {
@@ -30,5 +31,20 @@ public class WurstManager {
 			tags.put(tag.getMaterial(), existing);
 		}
 		existing.add(tag);
+	}
+	
+	public Collection<List<Tag>> getAllTags(){
+		return tags.values();
+	}
+
+	public Tag getEffectTag(WurstEffect effect) {
+		for(List<Tag> taglist : tags.values()){
+			for(Tag tag : taglist){
+				if (tag.getEffect().equals(effect)){
+					return tag;
+				}
+			}
+		}
+		return null;
 	}
 }
