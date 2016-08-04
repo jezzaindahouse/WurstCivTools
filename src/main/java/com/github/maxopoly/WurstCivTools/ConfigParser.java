@@ -1,13 +1,11 @@
 package com.github.maxopoly.WurstCivTools;
 
-import static vg.civcraft.mc.civmodcore.util.ConfigParsing.parseItemMap;
 import static vg.civcraft.mc.civmodcore.util.ConfigParsing.parseItemMapDirectly;
 import static vg.civcraft.mc.civmodcore.util.ConfigParsing.parseTime;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -15,10 +13,10 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
 
-import vg.civcraft.mc.civmodcore.Config;
 import vg.civcraft.mc.civmodcore.itemHandling.ItemMap;
 
 import com.github.maxopoly.WurstCivTools.anvil.AnvilHandler;
+import com.github.maxopoly.WurstCivTools.effect.LeafShears;
 import com.github.maxopoly.WurstCivTools.effect.PylonFinder;
 import com.github.maxopoly.WurstCivTools.effect.WurstEffect;
 import com.github.maxopoly.WurstCivTools.tags.LoreTag;
@@ -70,6 +68,15 @@ public class ConfigParser {
 				plugin.info("Parsed Pylonfinder tool, show_non_running:"
 						+ showNonRunning + ", showUpgrading:" + showUpgrading
 						+ ", cooldown:" + cd);
+				break;
+			case "LEAFSHEARS":
+				if (!Bukkit.getPluginManager().isPluginEnabled("Citadel")) {
+					plugin.severe("Attempted to load LeafShears tool, but Citadel is not installed on this server");
+					continue;
+				}
+				int clearCubeSize = current.getInt("clearCubeSize", 3);
+				effect = new LeafShears(clearCubeSize);
+				plugin.info("Parsed LeafShears tool, clearCubeSize:" + clearCubeSize);
 				break;
 			default:
 				plugin.severe("Could not identify effect type " + type + " at "

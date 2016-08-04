@@ -8,6 +8,13 @@ tech:
       type: LORE
       lore: Inactive and Upgrading Pylons
       material: COMPASS
+  leafshears:
+    type: LEAFSHEARS
+    clearCubeSize: 3
+    tag:
+      type: LORE
+      lore: Leaf Shears
+      material: SHEARS
 anvil:
   repairMaterials:
     emerald:

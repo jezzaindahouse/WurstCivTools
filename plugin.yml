@@ -2,7 +2,7 @@ name: WurstCivTools
 version: 1.0
 author: [Maxopoly]
 depend: [CivModCore]
-softdepend: [FactoryMod]
+softdepend: [Citadel,FactoryMod]
 main: com.github.maxopoly.WurstCivTools.WurstCivTools
 commands:
 permissions:
