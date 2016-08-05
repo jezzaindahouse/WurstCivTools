@@ -1,7 +1,6 @@
 package com.github.maxopoly.WurstCivTools.tags;
 
 import java.util.List;
-import java.util.Objects;
 
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -21,13 +20,12 @@ public class LoreTag extends Tag{
 		}
 		
 		ItemMeta im = is.getItemMeta();
-		List<String> appliedLore = im.getLore();
-		
-		if(appliedLore != null) {
-			for(String s : appliedLore) {
-				if (Objects.equals(s, lore)) {
-					return true;
-				}
+		List <String> appliedLore = im.getLore();
+		if (appliedLore == null)
+			return false;
+		for(String s : appliedLore) {
+			if (s.equals(lore)) {
+				return true;
 			}
 		}
 		
