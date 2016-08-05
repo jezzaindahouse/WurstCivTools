@@ -31,7 +31,7 @@ public class LeafShears extends WurstEffect {
 		super();
 		
 		this.clearCubeSize = clearCubeSize;
-	    this.cannotBypassMessage = ChatColor.translateAlternateColorCodes('&', cannotBypassMessage) + ChatColor.RED.getChar();
+	    this.cannotBypassMessage = ChatColor.translateAlternateColorCodes('&', cannotBypassMessage);
 	    this.durabilityLossChance = durabilityLossChance;
 	    this.rnd = new Random();
 	}
