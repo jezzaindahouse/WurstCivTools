@@ -1,6 +1,6 @@
 package com.github.maxopoly.WurstCivTools.listener;
 
-import java.util.LinkedList;
+import java.util.HashSet;
 import java.util.List;
 
 import org.bukkit.entity.EntityType;
@@ -11,7 +11,9 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.projectiles.ProjectileSource;
 
@@ -26,7 +28,7 @@ public class ToolListener implements Listener {
 		this.manager = WurstCivTools.getManager();
 	}
 
-	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void blockBreak(BlockBreakEvent e) {
 		ItemStack is = e.getPlayer().getInventory().getItemInMainHand();
 		for (Tag tag : getTags(is)) {
@@ -34,7 +36,7 @@ public class ToolListener implements Listener {
 		}
 	}
 
-	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void damageEntity(EntityDamageByEntityEvent e) {
 		Player p;
 		if (e.getDamager().getType() != EntityType.PLAYER) {
@@ -61,16 +63,40 @@ public class ToolListener implements Listener {
 		}
 	}
 
-	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void interact(PlayerInteractEvent e) {
-		ItemStack is = e.getItem();
-		for (Tag tag : getTags(is)) {
+		for (Tag tag : getTags(e.getItem())) {
 			tag.getEffect().handleInteract(e.getPlayer(), e);
 		}
 	}
+	
+	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	public void itemSelect(PlayerItemHeldEvent e){
+		Player p = e.getPlayer();
+		ItemStack olditem = p.getInventory().getItem(e.getPreviousSlot());
+		for (Tag tag : getTags(olditem)){
+			tag.getEffect().handleItemDeselect(p, e);
+		}
+		
+		ItemStack newitem = p.getInventory().getItem(e.getNewSlot());
+		for (Tag tag : getTags(newitem)){
+			tag.getEffect().handleItemSelect(p, e);
+		}
+	}
+	
+	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	public void switchItemOffhand(PlayerSwapHandItemsEvent e){
+		for (Tag tag : getTags(e.getMainHandItem())){
+			tag.getEffect().handleSwapToMainHand(e.getPlayer(), e);
+		}
+		
+		for (Tag tag : getTags(e.getOffHandItem())){
+			tag.getEffect().handleSwapToOffHand(e.getPlayer(), e);
+		}
+	}
 
-	private List<Tag> getTags(ItemStack is) {
-		List<Tag> tags = new LinkedList<Tag>();
+	private HashSet<Tag> getTags(ItemStack is) {
+		HashSet<Tag> tags = new HashSet<Tag>();
 		if (is == null) {
 			return tags;
 		}
