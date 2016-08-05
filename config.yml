@@ -10,7 +10,9 @@ tech:
       material: COMPASS
   leafshears:
     type: LEAFSHEARS
-    clearCubeSize: 3
+    clear_cube_size: 3
+    cannot_bypass_message: "&cSome of leaves are reinforced and therefore cannot be broken. Please use another tool to break it."
+    durability_loss_chance: 0.1
     tag:
       type: LORE
       lore: Leaf Shears

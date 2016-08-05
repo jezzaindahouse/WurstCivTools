@@ -74,9 +74,13 @@ public class ConfigParser {
 					plugin.severe("Attempted to load LeafShears tool, but Citadel is not installed on this server");
 					continue;
 				}
-				int clearCubeSize = current.getInt("clearCubeSize", 3);
-				effect = new LeafShears(clearCubeSize);
-				plugin.info("Parsed LeafShears tool, clearCubeSize:" + clearCubeSize);
+				int clearCubeSize = current.getInt("clear_cube_size", 3);
+				String cannotBypassMessage = current.getString("cannot_bypass_message", "");
+				double durabilityLossChance = current.getDouble("durability_loss_chance", 0);
+				effect = new LeafShears(clearCubeSize, cannotBypassMessage, durabilityLossChance);
+				plugin.info("Parsed LeafShears tool, clearCubeSize:" + clearCubeSize
+						+ ", cannotBypassmessage: \"" + cannotBypassMessage + "\""
+						+ ", durabilityLossChance: " + durabilityLossChance);
 				break;
 			default:
 				plugin.severe("Could not identify effect type " + type + " at "

@@ -5,7 +5,10 @@
 
 package com.github.maxopoly.WurstCivTools.effect;
 
+import java.util.Random;
+
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -15,19 +18,22 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 
 import vg.civcraft.mc.citadel.Citadel;
-import vg.civcraft.mc.citadel.PlayerState;
-import vg.civcraft.mc.citadel.reinforcement.PlayerReinforcement;
-import vg.civcraft.mc.citadel.reinforcement.Reinforcement;
 
 import com.github.maxopoly.WurstCivTools.WurstCivTools;
 
 public class LeafShears extends WurstEffect {
 	private int clearCubeSize;
+    private String cannotBypassMessage;
+    private double durabilityLossChance;
+    private Random rnd;
 
-	public LeafShears(int clearCubeSize) {
+	public LeafShears(int clearCubeSize, String cannotBypassMessage, double durabilityLossChance) {
 		super();
 		
 		this.clearCubeSize = clearCubeSize;
+	    this.cannotBypassMessage = ChatColor.translateAlternateColorCodes('&', cannotBypassMessage) + ChatColor.RED.getChar();
+	    this.durabilityLossChance = durabilityLossChance;
+	    this.rnd = new Random();
 	}
 
 	@Override
@@ -36,9 +42,7 @@ public class LeafShears extends WurstEffect {
 			return;
 		}
 		
-		final Player player = p;
-		
-		if(player == null) {
+		if(p == null) {
 			return;
 		}
 		
@@ -49,20 +53,39 @@ public class LeafShears extends WurstEffect {
 		e.setCancelled(true);
 		e.getBlock().setType(Material.AIR);
 		
+		final ItemStack handItem = p.getInventory().getItemInMainHand();
+		
 		//Following manipulations are needed to synchronize tool durability with client after cancel block break
-		final ItemStack handItem = player.getInventory().getItemInMainHand();
-
 		handItem.setDurability((short)(handItem.getDurability() + 1));
 		
+		final Player player = p;
 		final Location center = e.getBlock().getLocation();
 		
 		Bukkit.getScheduler().runTask(WurstCivTools.getPlugin(), new Runnable() {
             public void run() {
-            	handItem.setDurability((short)(handItem.getDurability() - 1));
+           		handItem.setDurability((short)(handItem.getDurability() - 1));
+            	
+            	damageItem(handItem, player);
             	
            		clearCube(player, center);
             }
         });
+	}
+	
+	private void damageItem(ItemStack item, Player player) {
+		int damage = getDamage();		
+		
+		if(damage == 0) {
+			return;
+		}
+		
+		if(WurstCivTools.getNmsManager().damageItem(item, damage, player)) {
+			player.getInventory().remove(player.getInventory().getItemInMainHand());
+		}
+	}
+	
+	private int getDamage() {
+		return this.rnd.nextDouble() < this.durabilityLossChance ? 1: 0;
 	}
 	
 	private void clearCube(Player player, Location center) {
@@ -75,19 +98,24 @@ public class LeafShears extends WurstEffect {
 		int startX = center.getBlockX() - radius;
 		int startY = center.getBlockY() - radius;
 		int startZ = center.getBlockZ() - radius;
-		PlayerState state = PlayerState.get(player);
-		boolean isBypassMode = state.isBypassMode();
+		boolean cannotBypass = false;
 		
 		for(int x = startX; x < startX + this.clearCubeSize; x++) {
 			for(int y = startY; y < startY + this.clearCubeSize; y++) {
-				for(int z = startY; z < startZ + this.clearCubeSize; z++) {
+				for(int z = startZ; z < startZ + this.clearCubeSize; z++) {
+					
 					if(x == center.getBlockX() && y == center.getBlockY() && z == center.getBlockZ()) {
 						continue;
 					}
 					
 					Block block = world.getBlockAt(x, y, z);
 					
-					if(!isLeaf(block) || !canBypass(player, isBypassMode, block.getLocation())) {
+					if(!isLeaf(block)) {
+						continue;
+					}
+					
+					if(Citadel.getReinforcementManager().getReinforcement(block.getLocation()) != null) {
+						cannotBypass = true;
 						continue;
 					}
 					
@@ -95,19 +123,10 @@ public class LeafShears extends WurstEffect {
 				}
 			}
 		}
-	}
-	
-	private static boolean canBypass(Player player, boolean isBypassMode, Location loc) {
-		Reinforcement rein = Citadel.getReinforcementManager().getReinforcement(loc);
 		
-		if(rein == null || !(rein instanceof PlayerReinforcement)) return true;
-		
-		if(!isBypassMode) return false;
-		
-		PlayerReinforcement playerRein = (PlayerReinforcement)rein;
-		
-		return playerRein.canBypass(player)
-			|| player.hasPermission("citadel.admin.bypassmode");
+		if(cannotBypass) {
+			player.sendMessage(this.cannotBypassMessage);
+		}
 	}
 	
 	private static boolean isLeaf(Block block) {
