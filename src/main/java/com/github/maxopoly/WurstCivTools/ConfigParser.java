@@ -6,6 +6,7 @@ import static vg.civcraft.mc.civmodcore.util.ConfigParsing.parseTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -15,6 +16,7 @@ import org.bukkit.enchantments.Enchantment;
 import vg.civcraft.mc.civmodcore.itemHandling.ItemMap;
 
 import com.github.maxopoly.WurstCivTools.anvil.AnvilHandler;
+import com.github.maxopoly.WurstCivTools.effect.LeafShears;
 import com.github.maxopoly.WurstCivTools.effect.PlayerHook;
 import com.github.maxopoly.WurstCivTools.effect.PylonFinder;
 import com.github.maxopoly.WurstCivTools.effect.WurstEffect;
@@ -72,6 +74,19 @@ public class ConfigParser {
 						+ showNonRunning + ", showUpgrading:" + showUpgrading
 						+ ", cooldown:" + cd);
 				break;
+			case "LEAFSHEARS":
+				if (!Bukkit.getPluginManager().isPluginEnabled("Citadel")) {
+					plugin.severe("Attempted to load LeafShears tool, but Citadel is not installed on this server");
+					continue;
+				}
+				int clearCubeSize = current.getInt("clear_cube_size", 3);
+				String cannotBypassMessage = current.getString("cannot_bypass_message", "");
+				double durabilityLossChance = current.getDouble("durability_loss_chance", 0);
+				effect = new LeafShears(clearCubeSize, cannotBypassMessage, durabilityLossChance);
+				plugin.info("Parsed LeafShears tool, clearCubeSize:" + clearCubeSize
+						+ ", cannotBypassmessage: \"" + cannotBypassMessage + "\""
+						+ ", durabilityLossChance: " + durabilityLossChance);
+				break;
 			case "PLAYERHOOK":
 				if (current.getBoolean("enabled",false) == false){
 					plugin.info("PlayerHook disabled, skipping...");
@@ -87,7 +102,6 @@ public class ConfigParser {
 						", axes:" + prevent_axes + ", bows:" + prevent_bows + 
 						", stop_count:" + stop_count + ", speed_change:" +speed_change);
 				break;
-
 			default:
 				plugin.severe("Could not identify effect type " + type + " at "
 						+ config.getCurrentPath());

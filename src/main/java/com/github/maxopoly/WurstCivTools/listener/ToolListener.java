@@ -30,7 +30,7 @@ public class ToolListener implements Listener {
 
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void blockBreak(BlockBreakEvent e) {
-		ItemStack is = e.getPlayer().getItemInHand();
+		ItemStack is = e.getPlayer().getInventory().getItemInMainHand();
 		for (Tag tag : getTags(is)) {
 			tag.getEffect().handleBreak(e.getPlayer(), e);
 		}
@@ -57,7 +57,7 @@ public class ToolListener implements Listener {
 		} else {
 			p = (Player) e.getDamager();
 		}
-		ItemStack is = p.getItemInHand();
+		ItemStack is = p.getInventory().getItemInMainHand();
 		for (Tag tag : getTags(is)) {
 			tag.getEffect().handleDamageEntity(p, e);
 		}

@@ -5,18 +5,24 @@ import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 
+import vg.civcraft.mc.civmodcore.ACivMod;
+
 import com.github.maxopoly.WurstCivTools.anvil.AnvilHandler;
 import com.github.maxopoly.WurstCivTools.listener.AnvilListener;
 import com.github.maxopoly.WurstCivTools.listener.ToolListener;
+import com.github.maxopoly.WurstCivTools.nms.INmsManager;
 import com.github.maxopoly.WurstCivTools.tags.Tag;
-
-import vg.civcraft.mc.civmodcore.ACivMod;
 
 public class WurstCivTools extends ACivMod {
 	
 	private static WurstCivTools instance;
 	private static WurstManager manager;
 	private static AnvilHandler anvilHandler;
+	
+	private static INmsManager nmsManager;
+	public static INmsManager getNmsManager() {
+		return nmsManager;
+	}
 	
 	public String getPluginName() {
 		return "WurstCivTools";
@@ -27,6 +33,7 @@ public class WurstCivTools extends ACivMod {
 		ConfigParser cp = new ConfigParser();
 		manager = cp.parse();
 		anvilHandler = cp.getAnvilHandler();
+		nmsManager = new com.github.maxopoly.WurstCivTools.nms.v1_10_R1.NmsManager();
 		registerListeners();
 	}
 	

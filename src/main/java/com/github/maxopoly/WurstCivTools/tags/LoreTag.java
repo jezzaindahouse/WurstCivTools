@@ -18,6 +18,7 @@ public class LoreTag extends Tag{
 		if (is == null) {
 			return false;
 		}
+		
 		ItemMeta im = is.getItemMeta();
 		List <String> appliedLore = im.getLore();
 		if (appliedLore == null)
@@ -27,6 +28,7 @@ public class LoreTag extends Tag{
 				return true;
 			}
 		}
+		
 		return false;
 	}
 }
