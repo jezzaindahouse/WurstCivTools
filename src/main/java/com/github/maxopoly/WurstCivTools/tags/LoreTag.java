@@ -20,6 +20,8 @@ public class LoreTag extends Tag{
 		}
 		ItemMeta im = is.getItemMeta();
 		List <String> appliedLore = im.getLore();
+		if (appliedLore == null)
+			return false;
 		for(String s : appliedLore) {
 			if (s.equals(lore)) {
 				return true;
