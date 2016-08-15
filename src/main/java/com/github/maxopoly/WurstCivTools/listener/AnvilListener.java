@@ -1,7 +1,10 @@
 package com.github.maxopoly.WurstCivTools.listener;
 
+import java.util.UUID;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -12,18 +15,20 @@ import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
 
+import vg.civcraft.mc.civmodcore.util.cooldowns.ICoolDownHandler;
+import vg.civcraft.mc.civmodcore.util.cooldowns.MilliSecCoolDownHandler;
+
 import com.github.maxopoly.WurstCivTools.WurstCivTools;
 import com.github.maxopoly.WurstCivTools.anvil.AnvilHandler;
-import com.github.maxopoly.WurstCivTools.misc.CoolDownHandler;
 
 public class AnvilListener implements Listener {
 
 	private AnvilHandler handler;
-	private CoolDownHandler cdHandler;
+	private ICoolDownHandler<UUID> cdHandler;
 
 	public AnvilListener(AnvilHandler handler) {
 		this.handler = handler;
-		cdHandler = new CoolDownHandler(100); // 50 ms cooldown
+		cdHandler = new MilliSecCoolDownHandler<UUID>(50);
 	}
 
 	@EventHandler(ignoreCancelled = true)
@@ -35,27 +40,25 @@ public class AnvilListener implements Listener {
 			if (e.getInventory().getItem(2) == null) {
 				return;
 			}
-			if (e.getCursor() != null) {
+			if (e.getCursor() != null && e.getCursor().getType() != Material.AIR) {
 				e.getWhoClicked().sendMessage(ChatColor.RED + "Remove the item from your cursor first so it's not overwritten");
 				return;
 			}
 			// result slot in anvil was clicked
-			if (handler.canTakeItem((AnvilInventory) e.getInventory())) {
-				ItemStack result = e.getInventory().getItem(2).clone();
-				if (handler.consumeRequiredMaterials((AnvilInventory) e
-						.getInventory())) {
-					e.setCursor(result);
-					Bukkit.getScheduler().scheduleSyncDelayedTask(
-							WurstCivTools.getPlugin(), new Runnable() {
-
+			ItemStack result = e.getInventory().getItem(2).clone();
+			if (handler.consumeRequiredMaterials((AnvilInventory) e
+					.getInventory())) {
+				e.setCursor(result);
+				Bukkit.getScheduler().scheduleSyncDelayedTask(
+						WurstCivTools.getPlugin(), new Runnable() {
 								@Override
-								public void run() {
-									for (HumanEntity h : e.getViewers()) {
-										((Player) h).updateInventory();
-									}
+							public void run() {
+								for (HumanEntity h : e.getViewers()) {
+									((Player) h).updateInventory();
 								}
-							});
-				}
+							}
+						}
+				);
 			}
 		}
 	}
@@ -72,8 +75,7 @@ public class AnvilListener implements Listener {
 		if (cost != 0) {
 			for (HumanEntity h : e.getInventory().getViewers()) {
 				if (!cdHandler.onCoolDown(h.getUniqueId())) {
-					h.sendMessage(ChatColor.GOLD
-							+ "Fully repairing this item will cost " + cost + " XP");
+					h.sendMessage(ChatColor.GOLD + String.valueOf(cost) + " XP to fully repair");
 					cdHandler.putOnCoolDown(h.getUniqueId());
 				}
 			}

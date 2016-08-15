@@ -24,27 +24,26 @@ public class AnvilHandler {
 	private static Set<Material> tools;
 	private boolean scaleWithMissingDurability;
 	private List<String> blacklistedLore;
+	Map<Material, Double> materialValues;
 
-	public AnvilHandler(Map<ItemMap, Double> values,
-			Map<Enchantment, Double> enchantCosts,
-			boolean scaleWithMissingDura, List<String> blacklistedLore) {
+	public AnvilHandler(Map<ItemMap, Double> values, Map<Enchantment, Double> enchantCosts,
+			Map<Material, Double> materialValues, boolean scaleWithMissingDura, List<String> blacklistedLore) {
 		this.values = values;
 		this.enchantCosts = enchantCosts;
 		this.scaleWithMissingDurability = scaleWithMissingDura;
 		this.blacklistedLore = blacklistedLore;
+		this.materialValues = materialValues;
 		initRepairableSet();
 	}
 
-	public boolean canTakeItem(AnvilInventory i) {
-		if (isCombiningRepairables(i)) {
-			return true;
-		} else {
-			double requiredAmount = getTotalAnvilActionCost(i);
-			double availableAmount = getValue(i.getItem(1), true);
-			return requiredAmount <= availableAmount;
-		}
-	}
-
+	/**
+	 * How much value is required total to execute the changes currently staged
+	 * in the given anvil inventory
+	 * 
+	 * @param i
+	 *            Anvil inventory to analyze
+	 * @return Value needed in the second slot
+	 */
 	public double getTotalAnvilActionCost(AnvilInventory i) {
 		if (i.getItem(0) == null) {
 			return 0.0;
@@ -53,31 +52,51 @@ public class AnvilHandler {
 		return requiredAmount;
 	}
 
+	/**
+	 * Calculates how much value is required to fully repair the given ItemStack
+	 * 
+	 * @param is
+	 *            ItemStack to repair
+	 * @return Value needed to repair the item fully
+	 */
 	public double calculateRepairCost(ItemStack is) {
 		if (!isTool(is.getType()) || is.getType() == Material.ENCHANTED_BOOK) {
 			return 0;
 		}
 		double duraMultiplier = 1.0;
 		if (scaleWithMissingDurability) {
-			duraMultiplier = ((double) is.getDurability())
-					/ ((double) is.getType().getMaxDurability());
+			duraMultiplier = ((double) is.getDurability()) / ((double) is.getType().getMaxDurability());
 		}
 		ItemMeta im = is.getItemMeta();
 		double enchantMultiplier = 0.0;
 		if (im.hasEnchants()) {
-			for (Entry<Enchantment, Integer> enchant : im.getEnchants()
-					.entrySet()) {
+			for (Entry<Enchantment, Integer> enchant : im.getEnchants().entrySet()) {
 				Double multi = enchantCosts.get(enchant.getKey());
 				if (multi != null) {
 					enchantMultiplier += multi * enchant.getValue();
 				}
 			}
-		} else {
-			enchantMultiplier = 1.0;
 		}
-		return enchantMultiplier * duraMultiplier;
+		double materialAddition = 0.0;
+		Double retrieveMatAddition = materialValues.get(is.getType());
+		if (retrieveMatAddition != null) {
+			materialAddition = retrieveMatAddition;
+		}
+		return (enchantMultiplier + materialAddition) * duraMultiplier;
 	}
 
+	/**
+	 * Calculates how much value the given ItemStack has, items with value are
+	 * used in the second anvil slot to repair repairables
+	 * 
+	 * @param is
+	 *            ItemStack to analyze
+	 * @param respectAmount
+	 *            Whether the amount of the given ItemStack should be taken into
+	 *            account. Set to false to just get information on the given
+	 *            ItemStack type
+	 * @return Value of the given ItemStack
+	 */
 	public double getValue(ItemStack is, boolean respectAmount) {
 		if (is == null || is.getType() == Material.AIR) {
 			return 0;
@@ -97,6 +116,14 @@ public class AnvilHandler {
 		return 0;
 	}
 
+	/**
+	 * Checks whether the given Material is a tool, ergo whether players should
+	 * be allowed to repair it
+	 * 
+	 * @param m
+	 *            Material to check
+	 * @return Whether the given Material is a tool
+	 */
 	public static boolean isTool(Material m) {
 		return tools.contains(m);
 	}
@@ -119,32 +146,34 @@ public class AnvilHandler {
 			return true;
 		}
 		if (availableAmount >= requiredAmount) {
-			int amountToConsume = (int) Math.ceil(requiredAmount
-					/ getValue(i.getItem(1), false));
+			int amountToConsume = (int) Math.ceil(requiredAmount / getValue(i.getItem(1), false));
 			i.setItem(0, null);
 			if (i.getItem(1).getAmount() == amountToConsume) {
 				i.setItem(1, null);
 			} else {
-				i.getItem(1).setAmount(
-						i.getItem(1).getAmount() - amountToConsume);
+				i.getItem(1).setAmount(i.getItem(1).getAmount() - amountToConsume);
 			}
 			return true;
 		}
-		return false;
+		else {
+			i.setItem(0, null);
+			i.setItem(1, null);
+			return true;
+		}
 	}
 
 	public ItemStack getAdjustedOutput(AnvilInventory i, ItemStack vanillaResult) {
 		ItemStack firstItem = i.getItem(0);
 		ItemStack secondItem = i.getItem(1);
+		if (firstItem == null) {
+			return null;
+		}
 		String newName = null;
 		if (vanillaResult != null && vanillaResult.getItemMeta() != null
 				&& vanillaResult.getItemMeta().hasDisplayName()) {
 			newName = vanillaResult.getItemMeta().getDisplayName();
 		}
 		if (isCombiningRepairables(i) || (secondItem != null && secondItem.getType() == Material.ENCHANTED_BOOK)) {
-			if (firstItem == null) {
-				return null;
-			}
 			if (firstItem.getType() != secondItem.getType() && secondItem.getType() != Material.ENCHANTED_BOOK) {
 				return null;
 			}
@@ -156,28 +185,24 @@ public class AnvilHandler {
 			for (ItemStack is : items) {
 				ItemMeta im = is.getItemMeta();
 				if (im.hasEnchants()) {
-					for (Entry<Enchantment, Integer> entry : im.getEnchants()
-							.entrySet()) {
+					for (Entry<Enchantment, Integer> entry : im.getEnchants().entrySet()) {
 						Integer existingVal = enchants.get(entry.getKey());
 						if (existingVal == null) {
 							enchants.put(entry.getKey(), entry.getValue());
 						} else {
-							enchants.put(entry.getKey(),
-									Math.max(entry.getValue(), existingVal));
+							enchants.put(entry.getKey(), Math.max(entry.getValue(), existingVal));
 						}
 					}
 				}
 				if (im.hasLore()) {
 					for (String exisLore : im.getLore()) {
-						if (!lore.contains(exisLore)
-								&& !blacklistedLore.contains(exisLore)) {
+						if (!lore.contains(exisLore) && !blacklistedLore.contains(exisLore)) {
 							lore.add(exisLore);
 						}
 					}
 				}
 			}
-			ItemStack result = new ItemStack(firstItem.getType(), 1,
-					firstItem.getDurability());
+			ItemStack result = new ItemStack(firstItem.getType(), 1, firstItem.getDurability());
 			ItemMeta im = result.getItemMeta();
 			if (lore.size() != 0) {
 				im.setLore(lore);
@@ -186,7 +211,8 @@ public class AnvilHandler {
 				im.addEnchant(entry.getKey(), entry.getValue(), true);
 			}
 			if (secondItem.getType() == Material.ENCHANTED_BOOK) {
-				for(Entry <Enchantment, Integer> entry : ((EnchantmentStorageMeta)secondItem.getItemMeta()).getStoredEnchants().entrySet()) {
+				for (Entry<Enchantment, Integer> entry : ((EnchantmentStorageMeta) secondItem.getItemMeta())
+						.getStoredEnchants().entrySet()) {
 					im.addEnchant(entry.getKey(), Math.max(entry.getValue(), im.getEnchantLevel(entry.getKey())), true);
 				}
 			}
@@ -196,41 +222,39 @@ public class AnvilHandler {
 			result.setItemMeta(im);
 			return result;
 		} else {
-			if (firstItem != null && secondItem == null) {
-				// assume renaming and do nothing
+			//repairing or second slot is empty
+			if (secondItem == null) {
 				return null;
-			} else { // put in a normal tool
-				if (firstItem == null) {
-					return null;
-				}
-				ItemStack repl = firstItem.clone();
-				repl.setDurability((short) 0);
-				return repl;
 			}
+			double value = getValue(secondItem, true);
+			double repairCost = calculateRepairCost(firstItem);
+			ItemStack repl = firstItem.clone();
+			int missingDura = repl.getDurability();
+			int newDura;
+			if (scaleWithMissingDurability) {
+				double available = Math.min(value/repairCost, 1.0);
+				newDura = (int) (missingDura - (missingDura * available));
+			}
+			else {
+				if (value >= repairCost) {
+					newDura = 0;
+				}
+				else {
+					newDura = missingDura;
+				}
+			}
+			if (newName != null) {
+				ItemMeta im = repl.getItemMeta();
+				im.setDisplayName(newName);
+				repl.setItemMeta(im);
+			}
+			repl.setDurability((short) newDura);
+			return repl;
 		}
-	}
-
-	private static boolean isBeingRenamed(AnvilInventory i) {
-		ItemStack originalItem = i.getItem(0);
-		ItemStack resultItem = i.getItem(2);
-		if (originalItem == null || resultItem == null) {
-			return false;
-		}
-		if (!resultItem.getItemMeta().hasDisplayName()) {
-			return false;
-		}
-		if (!originalItem.getItemMeta().hasDisplayName()) {
-			// original doesnt have name, but target does
-			return true;
-		}
-		// both have a custom name, so we need to check whether they are equal
-		return !originalItem.getItemMeta().getDisplayName()
-				.equals(resultItem.getItemMeta().getDisplayName());
 	}
 
 	public static boolean isCombiningRepairables(AnvilInventory i) {
-		return i.getItem(0) != null && i.getItem(1) != null
-				&& isTool(i.getItem(0).getType())
+		return i.getItem(0) != null && i.getItem(1) != null && isTool(i.getItem(0).getType())
 				&& isTool(i.getItem(1).getType());
 	}
 

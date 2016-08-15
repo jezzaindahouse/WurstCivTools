@@ -27,6 +27,61 @@ anvil:
       item:
         material: EMERALD_BLOCK
       value: 9.0
+  materialCosts:
+    diamondPick:
+      material: DIAMOND_PICKAXE
+      value: 15
+    diamondSword:
+      material: DIAMOND_SWORD
+      value: 10
+    diamondShovel:
+      material: DIAMOND_SPADE
+      value: 5
+    diamondAxe:
+      material: DIAMOND_AXE
+      value: 15
+    diamondHoe:
+      material: DIAMOND_HOE
+      value: 10
+    diamondHelmet:
+      material: DIAMOND_HELMET
+      value: 25
+    diamondChest:
+      material: DIAMOND_CHESTPLATE
+      value: 40
+    diamondLeggings:
+      material: DIAMOND_LEGGINGS
+      value: 35
+    diamondBoots:
+      material: DIAMOND_BOOTS
+      value: 20
+    ironPick:
+      material: IRON_PICKAXE
+      value: 6
+    ironSword:
+      material: IRON_SWORD
+      value: 4
+    ironShovel:
+      material: IRON_SPADE
+      value: 2
+    ironAxe:
+      material: IRON_AXE
+      value: 6
+    ironHoe:
+      material: IRON_HOE
+      value: 4
+    ironHelmet:
+      material: IRON_HELMET
+      value: 10
+    ironChest:
+      material: IRON_CHESTPLATE
+      value: 16
+    ironLeggings:
+      material: IRON_LEGGINGS
+      value: 14
+    ironBoots:
+      material: IRON_BOOTS
+      value: 8
   enchantCosts:
         fireprot:
           enchant: PROTECTION_FIRE

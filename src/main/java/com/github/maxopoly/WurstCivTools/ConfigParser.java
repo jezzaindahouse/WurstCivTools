@@ -53,13 +53,13 @@ public class ConfigParser {
 						+ config.getCurrentPath());
 				continue;
 			}
+			if (current.getBoolean("enabled", true) == false){
+				plugin.info("Effect " + key + " disabled, skipping...");
+				continue;
+			}
 			WurstEffect effect;
 			switch (type) {
 			case "PYLONFINDER":
-				if (current.getBoolean("enabled",false) == false){
-					plugin.info("Pylonfinder disabled, skipping...");
-					continue;
-				}
 				if (!Bukkit.getPluginManager().isPluginEnabled("FactoryMod")) {
 					plugin.severe("Attempted to load Pylonfinder tool, but FactoryMod is not installed on this server");
 					continue;
@@ -68,7 +68,7 @@ public class ConfigParser {
 						true);
 				boolean showUpgrading = current.getBoolean("show_upgrading",
 						true);
-				long cd = parseTime(current.getString("update_cooldown", "5s")) * 50L;
+				long cd = parseTime(current.getString("update_cooldown", "5s"));
 				effect = new PylonFinder(showNonRunning, showUpgrading, cd);
 				plugin.info("Parsed Pylonfinder tool, show_non_running:"
 						+ showNonRunning + ", showUpgrading:" + showUpgrading
@@ -88,10 +88,6 @@ public class ConfigParser {
 						+ ", durabilityLossChance: " + durabilityLossChance);
 				break;
 			case "PLAYERHOOK":
-				if (current.getBoolean("enabled",false) == false){
-					plugin.info("PlayerHook disabled, skipping...");
-					continue;
-				}
 				boolean prevent_swords = current.getBoolean("prevent_use_with_swords", false);
 				boolean prevent_axes = current.getBoolean("prevent_use_with_axes", false);
 				boolean prevent_bows = current.getBoolean("prevent_use_with_bows", false);
@@ -178,6 +174,10 @@ public class ConfigParser {
 		Map <Enchantment, Double> enchantCosts = new HashMap<Enchantment, Double>();
 		for(String key : enchantSection.getKeys(false)) {
 			ConfigurationSection current = enchantSection.getConfigurationSection(key);
+			if (current == null) {
+				plugin.warning("Found invalid value " + key + " in anvil enchant value section");
+				continue;
+			}
 			String enchantName = current.getString("enchant");
 			if (enchantName == null) {
 				plugin.warning("No enchant specified for custom enchant weight at " + current.getCurrentPath() + ". Skipping it");
@@ -191,9 +191,35 @@ public class ConfigParser {
 			double value = current.getDouble("value", 1.0);
 			enchantCosts.put(enchant, value);
 		}
+		ConfigurationSection matCostSection = config.getConfigurationSection("materialCosts");
+		Map <Material, Double> matCosts = new HashMap<Material, Double>();
+		if (matCostSection != null) {
+			for(String key : matCostSection.getKeys(false)) {
+				ConfigurationSection current = matCostSection.getConfigurationSection(key);
+				if (current == null) {
+					plugin.warning("Found invalid value " + key + " in anvil material value section");
+					continue;
+				}
+				String matName = current.getString("material");
+				if (matName == null) {
+					plugin.warning("No material specified for material anvil weight at " + current.getCurrentPath() + ". Skipping it");
+					continue;
+				}
+				Material mat;
+				try {
+					mat = Material.valueOf(matName);
+				}
+				catch (IllegalArgumentException e) {
+					plugin.warning("Found invalid material " + matName + "specified for material anvil weight at " + current.getCurrentPath() + ". Skipping it");
+					continue;
+				}
+				double value = current.getDouble("value", 1.0);
+				matCosts.put(mat, value);
+			}
+		}
 		List <String> blacklisted = config.getStringList("blacklistedLore");
 		boolean scaleWithMissingDura = config.getBoolean("scaleWithMissingDura", true);
-		anvilHandler = new AnvilHandler(repairValues, enchantCosts, scaleWithMissingDura, blacklisted);
+		anvilHandler = new AnvilHandler(repairValues, enchantCosts, matCosts, scaleWithMissingDura, blacklisted);
 	}
 	
 	public AnvilHandler getAnvilHandler() {

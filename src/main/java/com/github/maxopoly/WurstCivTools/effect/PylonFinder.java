@@ -2,10 +2,14 @@ package com.github.maxopoly.WurstCivTools.effect;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.UUID;
 
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
+
+import vg.civcraft.mc.civmodcore.util.cooldowns.ICoolDownHandler;
+import vg.civcraft.mc.civmodcore.util.cooldowns.TickCoolDownHandler;
 
 import com.github.igotyou.FactoryMod.FactoryMod;
 import com.github.igotyou.FactoryMod.eggs.FurnCraftChestEgg;
@@ -14,24 +18,24 @@ import com.github.igotyou.FactoryMod.factories.FurnCraftChestFactory;
 import com.github.igotyou.FactoryMod.recipes.IRecipe;
 import com.github.igotyou.FactoryMod.recipes.PylonRecipe;
 import com.github.igotyou.FactoryMod.recipes.Upgraderecipe;
-import com.github.maxopoly.WurstCivTools.misc.CoolDownHandler;
+import com.github.maxopoly.WurstCivTools.WurstCivTools;
 
 public class PylonFinder extends WurstEffect {
 
 	private boolean showNonRunning;
 	private boolean showUpgrading;
-	private CoolDownHandler cdHandler;
+	private ICoolDownHandler <UUID> cdHandler;
 
 	public PylonFinder(boolean showNonRunning, boolean showUpgrading,
 			long updateCooldown) {
 		super();
 		this.showNonRunning = showNonRunning;
 		this.showUpgrading = showUpgrading;
-		this.cdHandler = new CoolDownHandler(updateCooldown);
+		this.cdHandler = new TickCoolDownHandler<UUID>(WurstCivTools.getPlugin(), updateCooldown);
 	}
 
 	public void setCompassLocation(Player p) {
-		long coolDown = cdHandler.getRemainingCooldown(p.getUniqueId());
+		long coolDown = cdHandler.getRemainingCoolDown(p.getUniqueId());
 		if (coolDown != 0) {
 			p.sendMessage(ChatColor.RED + "You have to wait another "
 					+ coolDown / 1000 + "." + coolDown % 1000 + " seconds before using this again");
