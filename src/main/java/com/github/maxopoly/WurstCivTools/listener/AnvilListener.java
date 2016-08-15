@@ -35,6 +35,10 @@ public class AnvilListener implements Listener {
 			if (e.getInventory().getItem(2) == null) {
 				return;
 			}
+			if (e.getCursor() != null) {
+				e.getWhoClicked().sendMessage(ChatColor.RED + "Remove the item from your cursor first so it's not overwritten");
+				return;
+			}
 			// result slot in anvil was clicked
 			if (handler.canTakeItem((AnvilInventory) e.getInventory())) {
 				ItemStack result = e.getInventory().getItem(2).clone();
